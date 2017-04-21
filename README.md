@@ -17,7 +17,7 @@ $ sudo pip install adafruit-charlcd
 
 ### Backend
 ```
-$ sudo pip install matplotlib
+$ sudo pip install numpy matplotlib
 $ wget https://raw.githubusercontent.com/TheOtherMarcus/PowerLogger/master/backend/powermon.py
 $ wget https://raw.githubusercontent.com/TheOtherMarcus/PowerLogger/master/backend/powergraph.py
 $ wget https://raw.githubusercontent.com/TheOtherMarcus/PowerLogger/master/backend/powerlist.py
