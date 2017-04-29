@@ -39,6 +39,7 @@ sudo apt-get install apache2 php5 libapache2-mod-php5
 cd /var/www/html
 sudo mv index.html index.debian
 sudo wget https://raw.githubusercontent.com/TheOtherMarcus/PowerLogger/master/frontend/index.php
+sudo wget https://raw.githubusercontent.com/TheOtherMarcus/PowerLogger/master/frontend/csv.php
 sudo mkdir graphs
 udo chmod 777 graphs
 ```
