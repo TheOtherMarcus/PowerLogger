@@ -41,6 +41,6 @@ sudo mv index.html index.debian
 sudo wget https://raw.githubusercontent.com/TheOtherMarcus/PowerLogger/master/frontend/index.php
 sudo wget https://raw.githubusercontent.com/TheOtherMarcus/PowerLogger/master/frontend/csv.php
 sudo mkdir graphs
-udo chmod 777 graphs
+sudo chmod 777 graphs
 ```
 
