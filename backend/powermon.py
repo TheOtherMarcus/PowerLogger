@@ -43,10 +43,14 @@ GPIO.setup(sensor_pin, GPIO.IN)
 
 # Find out the IP address
 def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8",53))
-    ip = s.getsockname()[0]
-    s.close()
+    ip = ""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8",53))
+        ip = s.getsockname()[0]
+        s.close()
+    except:
+        None
     return ip
 
 # Show ip immediately
