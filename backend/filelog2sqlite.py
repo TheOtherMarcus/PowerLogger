@@ -17,8 +17,11 @@ c = conn.cursor()
 c = conn.cursor()
 i = 0
 for s in blinks(logdir):
-    print str(s*1000) + " " + str(datetime.fromtimestamp(s))
-    c.execute("insert into blink values (?)", (s,))
+    print repr(s) + " " + str(datetime.fromtimestamp(s))
+    try:
+        c.execute("insert into blink values (?)", (s,))
+    except sqlite3.Error as e:
+        print "Database error: %s" % e
     if i % 1000 == 0:
         conn.commit()
         c = conn.cursor()
