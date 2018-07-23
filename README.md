@@ -30,7 +30,7 @@ crontab -e
 ```
 Add the following line to the crontab.
 ```
-@reboot /home/pi/powermon.py &
+@reboot /home/pi/powermon.py powerlog &
 ```
 
 ### Frontend
