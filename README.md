@@ -25,7 +25,9 @@ wget https://raw.githubusercontent.com/TheOtherMarcus/PowerLogger/master/backend
 wget https://raw.githubusercontent.com/TheOtherMarcus/PowerLogger/master/backend/powerlist.py
 wget https://raw.githubusercontent.com/TheOtherMarcus/PowerLogger/master/backend/logreader.py
 chmod +x powermon.py powergraph.py powerlist.py
-mkdir powerlog
+chmod aug+rwx .
+touch powerlog.sqlite
+chmod aug+rw powerlog.sqlite
 crontab -e
 ```
 Add the following line to the crontab.
