@@ -34,12 +34,16 @@ lcd_backlight = 4
 lcd_columns = 16
 lcd_rows    = 2
 
+filelog = ""
 remote = ""
 user = ""
 passwd = ""
 # Command line parameters
 sys.argv = sys.argv[1:]
 while len(sys.argv) > 1:
+    if sys.argv[0] == "-filelog":
+        filelog = "yes"
+        sys.argv = sys.argv[1:]
     if sys.argv[0] == "-remote":
         remote = sys.argv[1]
         sys.argv = sys.argv[2:]
@@ -50,7 +54,7 @@ while len(sys.argv) > 1:
         passwd = sys.argv[1]
         sys.argv = sys.argv[2:]
     else:
-        print "usage: powermon.py [-remote server:port] powerlog"
+        print "usage: powermon.py [-filelog] [-remote url] [-user username] [-passwd passwd] powerlog"
         exit()
 logdir = sys.argv[0]
 
@@ -86,6 +90,7 @@ def get_ip():
     return ip
 
 # Show ip immediately
+blinks = 0
 ip = get_ip()
 lcd.message(ip +"\n\n")
 
@@ -102,7 +107,7 @@ blinktime = 0
 
 # Sensor interrupt
 def sensor_isr(channel):
-    global blinktime, logfile, bpkwh, bif, ip
+    global blinktime, logfile, bpkwh, bif, blinks, ip
     now = time.time()
     print "Blink"
 
@@ -116,19 +121,18 @@ def sensor_isr(channel):
     blinktime = now
 
     # Logging
-    if bif > 0: # Keep on logging in existing file
-        logfile.write(repr(now) + "\n")
-        logfile.flush()
-    bif = bif + 1
-    if bif > bpkwh: # We want one extra blink time per file
-        logfile.close()
-        bif = 0
-    if bif == 0: # Log to new file
-        logfile = file(logdir + "/" + datetime.fromtimestamp(now).isoformat(), 'w+b')
-        logfile.write(repr(now) + "\n")
+    if len(filelog) > 0:
+        if bif > 0: # Keep on logging in existing file
+            logfile.write(repr(now) + "\n")
+            logfile.flush()
         bif = bif + 1
-        # Time to see if IP has changed
-        ip = get_ip()
+        if bif > bpkwh: # We want one extra blink time per file
+            logfile.close()
+            bif = 0
+        if bif == 0: # Log to new file
+            logfile = file(logdir + "/" + datetime.fromtimestamp(now).isoformat(), 'w+b')
+            logfile.write(repr(now) + "\n")
+            bif = bif + 1
 
     # sqlite logging
     conn = sqlite3.connect(logdir + '.sqlite')
@@ -139,11 +143,17 @@ def sensor_isr(channel):
     
     # Remote logging to ctrl-home
     if len(remote) > 0:
-        print "http://" + remote + "/tail"
-        r = requests.post("http://" + remote + "/tail", auth=requests.auth.HTTPBasicAuth(user, passwd),
+        print remote
+        r = requests.post(remote, auth=requests.auth.HTTPBasicAuth(user, passwd),
                           data={'id': "power", 'legend': ':Wh:W', 'value': "1 " + w})
         print(r.status_code, r.reason)
-        
+
+    blinks = blinks + 1
+    if blinks % 1000 == 0:
+        # Time to update IP
+        ip = get_ip()
+
+
 GPIO.add_event_detect(sensor_pin, GPIO.RISING, callback=sensor_isr, bouncetime=int(1000*1000/bpkwh*3600/(244*ampere*3)))
 
 try:
