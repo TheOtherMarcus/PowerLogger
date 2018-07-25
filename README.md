@@ -8,9 +8,9 @@ It is possible to draw a PNG graph for a time period with a selectable sample re
 The software runs on a standard Raspbian installation.
 
 ### Timezone
-...
+```
 sudo dpkg-reconfigure tzdata
-...
+```
 
 ### LCD Support
 ```
