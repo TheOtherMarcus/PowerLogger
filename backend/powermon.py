@@ -19,6 +19,8 @@ sensor_pin = 10
 
 # Power meter blinks per kWh
 bpkwh = 1000.0
+
+# Used for interrrupt bounce time calculation
 ampere = 16.0
 
 # Raspberry Pi pin configuration:
@@ -73,7 +75,9 @@ conn = sqlite3.connect(logdir + '.sqlite')
 c = conn.cursor()
 c.execute("pragma journal_mode = WAL");
 c.execute("create table if not exists blink (time integer unique)")
-c.execute("create view if not exists wh as select a.time as time, (select max(b.time) - (select max(c.time) from blink c where c.time < max(b.time)) from blink b where b.time < a.time) as prev_interval, a.time - (select max(b.time) from blink b where b.time < a.time) as interval, (select min(b.time) from blink b where b.time > a.time) - a.time as next_interval from blink a where interval*2 > prev_interval or interval*2 > next_interval");
+c.execute("create view if not exists wh as select a.time as time from blink a");
+# Alternative filetering view
+#c.execute("create view if not exists wh as select a.time as time, (select max(b.time) - (select max(c.time) from blink c where c.time < max(b.time)) from blink b where b.time < a.time) as prev_interval, a.time - (select max(b.time) from blink b where b.time < a.time) as interval, (select min(b.time) from blink b where b.time > a.time) - a.time as next_interval from blink a where interval*2 > prev_interval or interval*2 > next_interval");
 conn.commit()
 conn.close()
 
@@ -154,7 +158,7 @@ def sensor_isr(channel):
         ip = get_ip()
 
 
-GPIO.add_event_detect(sensor_pin, GPIO.RISING, callback=sensor_isr, bouncetime=int(1000*1000/bpkwh*3600/(244*ampere*3)))
+GPIO.add_event_detect(sensor_pin, GPIO.FALLING, callback=sensor_isr, bouncetime=int(1000*1000/bpkwh*3600/(244*ampere*3)))
 
 try:
     while True:
