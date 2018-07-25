@@ -5,7 +5,7 @@ The software monitors the sensor GPIO and writes a timestamp to a sqlite databas
 
 It is possible to draw a PNG graph for a time period with a selectable sample resolution. Data can also be exported to a CSV file. These functions are accessed using a Web frontend.
 
-The software runs on a standard Raspbian installation.
+The software runs on a standard Raspbian installation. For headless setup see https://davidmaitland.me/2015/12/raspberry-pi-zero-headless-setup.
 
 ### Timezone
 ```
