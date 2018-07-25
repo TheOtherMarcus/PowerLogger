@@ -49,6 +49,8 @@ sudo wget https://raw.githubusercontent.com/TheOtherMarcus/PowerLogger/master/fr
 sudo wget https://raw.githubusercontent.com/TheOtherMarcus/PowerLogger/master/frontend/csv.php
 sudo mkdir graphs
 sudo chmod aug+rwx graphs
+# For matplotlib font cache
+sudo chgrp www-data /var/www
+sudo chmod g+w /var/www
 ```
-
-The first access takes forever as matplotlib renders fonts.
+The first access will take forever as matplotlib generates fonts.
