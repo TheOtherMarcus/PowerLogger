@@ -36,7 +36,7 @@ crontab -e
 ```
 Add the following line to the crontab.
 ```
-@reboot /home/pi/powermon.py powerlog &
+@reboot /home/pi/powermon.py /home/pi/powerlog.sqlite &
 ```
 Reboot to start power monitoring.
 
