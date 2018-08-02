@@ -18,7 +18,7 @@
        if ($duration == "31536000") $label = "Last Year";
        if ($duration == "3153600000") $label = "Last 100 Years";
        print "<h3>" . $label . ": &nbsp; ";
-       $rows = explode("\n", shell_exec("~pi/powergraph.py " . $duration . " " . $interval . " /var/www/html/graphs/" . $duration . ".png ~pi/powerlog"));
+       $rows = explode("\n", shell_exec("~pi/powergraph.py " . $duration . " " . $interval . " /var/www/html/graphs/" . $duration . ".png ~pi/powerlog.sqlite"));
        foreach ($rows as $row) {
          if ("+" != substr($row, 0, 1)) {
            print $row . " &nbsp; ";

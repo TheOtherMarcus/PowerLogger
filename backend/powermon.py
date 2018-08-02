@@ -5,7 +5,6 @@ import time
 import sys
 import os
 import socket
-import requests
 import sqlite3
 
 import Adafruit_CharLCD as LCD
@@ -36,30 +35,8 @@ lcd_backlight = 4
 lcd_columns = 16
 lcd_rows    = 2
 
-filelog = ""
-remote = ""
-user = ""
-passwd = ""
-# Command line parameters
-sys.argv = sys.argv[1:]
-while len(sys.argv) > 1:
-    if sys.argv[0] == "-filelog":
-        filelog = "yes"
-        sys.argv = sys.argv[1:]
-    if sys.argv[0] == "-remote":
-        remote = sys.argv[1]
-        sys.argv = sys.argv[2:]
-    elif sys.argv[0] == "-user":
-        user = sys.argv[1]
-        sys.argv = sys.argv[2:]
-    elif sys.argv[0] == "-passwd":
-        passwd = sys.argv[1]
-        sys.argv = sys.argv[2:]
-    else:
-        print "usage: powermon.py [-filelog] [-remote url] [-user username] [-passwd passwd] powerlog"
-        exit()
-logdir = sys.argv[0]
-
+# Sqlite database
+db = sys.argv[1]
 
 # Initialize the LCD using the pins above.
 lcd = LCD.Adafruit_CharLCD(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7,
@@ -71,13 +48,17 @@ GPIO.setup(button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(sensor_pin, GPIO.IN)
 
 # Setup the database
-conn = sqlite3.connect(logdir + '.sqlite')
+conn = sqlite3.connect(db)
 c = conn.cursor()
 c.execute("pragma journal_mode = WAL");
 c.execute("create table if not exists blink (time integer unique)")
+
+# Use blinks unchanged
 c.execute("create view if not exists wh as select a.time as time from blink a");
-# Alternative filetering view
+
+# Alternative filter for spurious blinks
 #c.execute("create view if not exists wh as select a.time as time, (select max(b.time) - (select max(c.time) from blink c where c.time < max(b.time)) from blink b where b.time < a.time) as prev_interval, a.time - (select max(b.time) from blink b where b.time < a.time) as interval, (select min(b.time) from blink b where b.time > a.time) - a.time as next_interval from blink a where interval*2 > prev_interval or interval*2 > next_interval");
+
 conn.commit()
 conn.close()
 
@@ -98,20 +79,12 @@ blinks = 0
 ip = get_ip()
 lcd.message(ip +"\n\n")
 
-# Logfile
-logfile = None
-
-# Blinks in current logfile. Each file will have bpkwh+1 time entries
-# to cover a whole kwh. The first entry in the next file will be the
-# last in the previous.
-bif = -1
-
 # Timekeeper
 blinktime = 0
 
 # Sensor interrupt
 def sensor_isr(channel):
-    global blinktime, logfile, bpkwh, bif, blinks, ip
+    global blinktime, bpkwh, blinks, ip
     now = time.time()
     print "Blink"
 
@@ -124,34 +97,13 @@ def sensor_isr(channel):
         lcd.message(ip + "\n" + time.strftime("%H:%M:%S", time.localtime(now)) + " " + w.split(".")[0] + " W" + "\n")
     blinktime = now
 
-    # Logging
-    if len(filelog) > 0:
-        if bif > 0: # Keep on logging in existing file
-            logfile.write(repr(now) + "\n")
-            logfile.flush()
-        bif = bif + 1
-        if bif > bpkwh: # We want one extra blink time per file
-            logfile.close()
-            bif = 0
-        if bif == 0: # Log to new file
-            logfile = file(logdir + "/" + datetime.fromtimestamp(now).isoformat(), 'w+b')
-            logfile.write(repr(now) + "\n")
-            bif = bif + 1
-
     # sqlite logging
-    conn = sqlite3.connect(logdir + '.sqlite')
+    conn = sqlite3.connect(db)
     c = conn.cursor()
     c.execute("insert into blink values (?)", (int(now*1000),) )
     conn.commit()
     conn.close()
     
-    # Remote logging to ctrl-home
-    if len(remote) > 0:
-        print remote
-        r = requests.post(remote, auth=requests.auth.HTTPBasicAuth(user, passwd),
-                          data={'id': "power", 'legend': ':Wh:W', 'value': "1 " + w})
-        print(r.status_code, r.reason)
-
     blinks = blinks + 1
     if blinks % 1000 == 0:
         # Time to update IP
@@ -164,15 +116,13 @@ try:
     while True:
         GPIO.wait_for_edge(button_pin, GPIO.FALLING)
         lcd.set_backlight(1)
+        # Debounce time
         time.sleep(0.5)
+        # Wait here while button pressed
         while not GPIO.input(button_pin):
             time.sleep(0.1)
         lcd.set_backlight(0)
 except KeyboardInterrupt:
     GPIO.cleanup()
-    if logfile != None:
-        logfile.close()
 
 GPIO.cleanup()
-if logfile != None:
-    logfile.close()
