@@ -1,5 +1,5 @@
 # PowerLogger
-This repo contains the software for the power logger descibed at http://formallanguage.blogspot.se/2017/04/power-logger.html.
+This is the software for the power logger descibed at http://formallanguage.blogspot.se/2017/04/power-logger.html.
 
 The software monitors the sensor GPIO and writes a timestamp to a sqlite database for each registered blink. A timestamp records the number of milliseconds since epoch.
 
