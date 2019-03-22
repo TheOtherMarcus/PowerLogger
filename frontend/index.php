@@ -31,7 +31,7 @@
 <form action="." method="get">
 ~| Duration:
   <select name="duration">
-    <option value="1">Last Second</option>
+    <option value="10">Last 10 Seconds</option>
     <option value="60">Last Minute</option>
     <option value="3600" selected>Last Hour</option>
     <option value="86400">Last 24 Hours</option>
@@ -42,7 +42,7 @@
   </select>
   Interval:
   <select name="interval">
-    <option value="1" selected>1 Second</option>
+    <option value="10" selected>10 Seconds</option>
     <option value="60">1 Minute</option>
     <option value="3600">1 Hour</option>
     <option value="86400">24 Hours</option>
@@ -58,7 +58,7 @@
 <form action="csv.php" method="get">
 ~| Duration:
   <select name="duration">
-    <option value="1">Last Second</option>
+    <option value="10">Last 10 Seconds</option>
     <option value="60">Last Minute</option>
     <option value="3600" selected>Last Hour</option>
     <option value="86400">Last 24 Hours</option>
@@ -69,7 +69,7 @@
   </select>
   Interval:
   <select name="interval">
-    <option value="1" selected>1 Second</option>
+    <option value="10" selected>10 Seconds</option>
     <option value="60">1 Minute</option>
     <option value="3600">1 Hour</option>
     <option value="86400">24 Hours</option>

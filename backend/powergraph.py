@@ -22,7 +22,25 @@ y = list()
 conn = sqlite3.connect(db)
 
 c = conn.cursor()
-for row in c.execute("select max(a.time), ifnull( 3600.0*1000*(count(a.time)+1)/( (select min(b.time) from wh b where b.time > max(a.time)) - ifnull( (select max(b.time) from wh b where b.time < min(a.time)), 0 )), 3600.0*1000*count(a.time)/(max(a.time) - ifnull( (select max(b.time) from wh b where b.time < min(a.time)), 0 ) ) ), ((select max(d.time) from wh d) - a.time)/(?*1000) as bin from wh a where a.time > ((select max(c.time) from wh c) - ?*1000) group by bin order by max(a.time)", (interval, duration)):
+for row in c.execute("""
+
+select max(a.time),
+       ifnull( 3600.0*1000*(count(a.time)+1) /
+               ( (select min(b.time) from wh b where b.time > max(a.time)) -
+                 ifnull( (select max(b.time) from wh b where b.time < min(a.time)), 0)
+               ),
+               3600.0*1000*count(a.time) /
+               ( max(a.time) -
+                 ifnull( (select max(b.time) from wh b where b.time < min(a.time)), 0)
+               )
+             ),
+       ((select max(d.time) from wh d) - a.time) / (?*1000) as bin
+from wh a
+where a.time > ((select max(c.time) from wh c) - ?*1000)
+group by bin
+ order by max(a.time)
+
+""", (interval, duration)):
     x = x + [datetime.fromtimestamp(row[0]/1000.0)]
     y = y + [row[1]]
 conn.commit()
@@ -34,6 +52,11 @@ for row in c.execute("select max(a.time), ifnull( 3600.0*1000*(count(a.time)+1)/
     print str(int(row[3])) + " kWh/year"
 conn.commit()
 
-plt.plot(list(reversed(x)), list(reversed(y)))
+# Remove spikes in the graph
+y2 = list(y)
+for i in range(1, len(y)-1):
+    y2[i] = min(y[i], min(y[i-1], y[i+1]))
+    
+plt.plot(list(reversed(x)), list(reversed(y2)))
 plt.gcf().autofmt_xdate()
 plt.savefig(graph)
